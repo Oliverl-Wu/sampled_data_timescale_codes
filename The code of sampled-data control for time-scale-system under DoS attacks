@@ -1,2 +1,265 @@
 # sampled_data_timescale_codes
-The code of sampled-data control for time-scale-system under DoS attacks (including a numerical example, a comparative example with other sampling data control methods, and a simulation of a case study)
+%The code of sampled-data control for time-scale-system under DoS attacks (including a numerical example, a comparative example with other sampling data control methods, and a simulation of a case study)
+clc
+clear all
+close all
+
+L=[1 -1 0 0 0 0 0 0 0 0 0 0 0 0;
+   -1 6 -1 -1 -1 0 -1 0 -1 0 0 0 0 0;
+   0 -1 3 -1 0 -1 0 0 0 0 0 0 0 0;
+   0 -1 -1 4 0 0 0 0 0 -1 0 -1 0 0;
+   0 -1 0 0 5 -1 0 -1 0 -1 0 0 0 -1;
+   0 0 -1 0 -1 4 0 0 -1 0 -1 0 0 0;
+   0 -1 0 0 0 0 2 0 0 0 0 0 0 -1;
+   0 0 0 0 -1 0 0 2 0 0 0 0 0 -1;
+   0 -1 0 0 0 -1 0 0 3 0 0 0 0 -1;
+   0 0 0 -1 -1 0 0 0 0 3 0 -1 0 0;
+   0 0 0 0 0 -1 0 0 0 0 3 -1 0 -1;
+   0 0 0 -1 0 0 0 0 0 -1 -1 5 -1 -1;
+   0 0 0 0 0 0 0 0 0 0 0 -1 2 -1;
+   0 0 0 0 -1 0 -1 -1 -1 0 -1 -1 -1 7]; 
+D=[0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 1 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 1 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 1 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 1;]
+
+
+rng(0)
+h = 0.01;
+T = 100;
+t = 0 : h : T;
+q = 0.5;
+c = 0.2;
+d = 0.2; % sampling
+x = zeros(14,length(t));
+z = zeros(14,length(t));
+x(:,1) = 50*rands(1,14)' + 380; 
+% x(:,1) = []
+y = 380;
+z(:,1) = 380-x(:,1);
+
+DoS_interval = [0 2.5 3 5.5 6.5 9.5 10.2 15.5 16.1 20.5 22.2 30 32 35 36.5 50 53.1 61.3 62.4 70 73.3 82 83.5 90 92.4 100];
+
+% DoS_interval = [0 300];
+
+DoS_off_on = size(DoS_interval);
+
+z_con = z; % z_con
+
+DoS_index = 1; % 
+cr1=[14,114,204]/255;
+cr2=[108,163,15]/255;
+cr3=[245,147,17]/255;
+cr4=[250,67,67]/255;
+cr5=[22,175,204]/255;
+cr6=[209,42,106]/255;
+cr7=[249,226,100]/255;
+cr8=[99,178,238]/255;
+cr9=[118,218,145]/255;
+cr10=[248,203,127]/255;
+cr11=[248,149,136]/255;
+cr12=[124,214,207]/255;
+cr13=[239,166,102]/255;
+cr14=[0,168,225]/255;
+
+
+T_1 = 5/h;
+
+for i = 1  :  T_1
+    if t(i) >= DoS_interval(DoS_index)
+        DoS_index = DoS_index + 1;
+    end
+    if mod(DoS_index,2) == 0
+        if mod(t(i),d)==0
+            z_con(:,i) = z(:,i); 
+        else
+            z_con(:,i) = z_con(:,i-1); 
+        end
+    else
+       z_con(:,i) = z_con(:,i-1);  
+    end
+    z(:,i + 1) = z(:,i) - h*c*L*z(:,i)-h*q*D*z_con(:,i);
+end
+ccc = [0.5 0.54 0.53];
+figure(1)
+% plot(t,z + 380)
+hold on 
+tt_1 = 1 : T_1;
+y_1= plot(t(tt_1),z(1,tt_1),'Color',cr1,'LineWidth',5);
+y_2= plot(t(tt_1),z(2,tt_1),'Color',cr2,'LineWidth',5);
+y_3= plot(t(tt_1),z(3,tt_1),'Color',cr3,'LineWidth',5);
+y_4= plot(t(tt_1),z(4,tt_1),'Color',cr4,'LineWidth',5);
+y_5= plot(t(tt_1),z(5,tt_1),'Color',cr5,'LineWidth',5);
+y_6= plot(t(tt_1),z(6,tt_1),'Color',cr6,'LineWidth',5);
+y_7= plot(t(tt_1),z(7,tt_1),'Color',cr7,'LineWidth',5);
+y_8= plot(t(tt_1),z(8,tt_1),'Color',cr8,'LineWidth',5);
+y_9= plot(t(tt_1),z(9,tt_1),'Color',cr9,'LineWidth',5);
+y_10= plot(t(tt_1),z(10,tt_1),'Color',cr10,'LineWidth',5);
+y_11= plot(t(tt_1),z(11,tt_1),'Color',cr11,'LineWidth',5);
+y_12= plot(t(tt_1),z(12,tt_1),'Color',cr12,'LineWidth',5);
+y_13= plot(t(tt_1),z(13,tt_1),'Color',cr13,'LineWidth',5);
+y_14= plot(t(tt_1),z(14,tt_1),'Color',cr14,'LineWidth',5);
+
+figure(2)
+temp = q*D*z_con;
+hold on
+tt_1 = 1 : T_1;
+r1 = plot(t(tt_1),temp(5,tt_1),'Color',cr1,'LineWidth',3);
+r2 = plot(t(tt_1),temp(7,tt_1),'Color',cr2,'LineWidth',3);
+r3 = plot(t(tt_1),temp(12,tt_1),'--','Color',cr3,'LineWidth',3);
+r4 = plot(t(tt_1),temp(14,tt_1),'--','Color',cr4,'LineWidth',3);
+hold on 
+          
+T_2 = 15/h;
+d = 2;
+for i = T_1 + 1  : 1/h : T_2  + 1 
+    if t(i) >= DoS_interval(DoS_index)
+        DoS_index = DoS_index + 1;
+    end
+    if mod(DoS_index,2) == 0
+        if mod(t(i),d)==0
+            z_con(:,i) = z(:,i); 
+        else
+            if i == T_1 + 1
+                z_con(:,i) = z_con(:,i-1); 
+            else
+               z_con(:,i) = z_con(:,i-1/h); 
+            end
+        end
+    else
+       if i == T_1 + 1
+                z_con(:,i) = z_con(:,i-1); 
+            else
+               z_con(:,i) = z_con(:,i-1/h); 
+       end 
+    end
+    z(:,i + 1/h) = z(:,i) - c*L*z(:,i)-q*D*z_con(:,i);
+end
+
+figure(1)
+hold on 
+tt_2 = T_1+1 : 1/h : T_2 + 1;
+y_1 = plot(t(tt_2),z(1,tt_2),'.','Color',cr1,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_2 = plot(t(tt_2),z(2,tt_2),'.','Color',cr2,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_3= plot(t(tt_2),z(3,tt_2),'.','Color',cr3,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_4= plot(t(tt_2),z(4,tt_2),'.','Color',cr4,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_5= plot(t(tt_2),z(5,tt_2),'.','Color',cr5,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_6= plot(t(tt_2),z(6,tt_2),'.','Color',cr6,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_7= plot(t(tt_2),z(7,tt_2),'.','Color',cr7,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_8= plot(t(tt_2),z(8,tt_2),'.','Color',cr8,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_9= plot(t(tt_2),z(9,tt_2),'.','Color',cr9,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_10= plot(t(tt_2),z(10,tt_2),'.','Color',cr10,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_11= plot(t(tt_2),z(11,tt_2),'.','Color',cr11,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_12= plot(t(tt_2),z(12,tt_2),'.','Color',cr12,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_13= plot(t(tt_2),z(13,tt_2),'.','Color',cr13,"Marker","h","MarkerSize",5,'LineWidth',5);
+y_14= plot(t(tt_2),z(14,tt_2),'.','Color',cr14,"Marker","h","MarkerSize",5,'LineWidth',5);
+
+figure(2)
+temp = q*D*z_con;
+hold on
+tt_2 = T_1+1 : 1/h : T_2 + 1;
+r1 = plot(t(tt_2),temp(5,tt_2),'.','Color',cr1,"Marker","h","MarkerSize",5,'LineWidth',5);
+r2 = plot(t(tt_2),temp(7,tt_2),'.','Color',cr2,"Marker","h","MarkerSize",5,'LineWidth',5);
+r3 = plot(t(tt_2),temp(12,tt_2),'.','Color',cr3,"Marker","h","MarkerSize",5,'LineWidth',5);
+r4 = plot(t(tt_2),temp(14,tt_2),'.','Color',cr4,"Marker","h","MarkerSize",5,'LineWidth',5);
+hold on 
+
+
+T_3 = T/h;
+d = 0.2;
+for i = T_2 + 1  :  T_3
+    if t(i) >= DoS_interval(DoS_index)
+        DoS_index = DoS_index + 1;
+    end
+    if mod(DoS_index,2) == 0
+        if mod(t(i),d)==0
+            z_con(:,i) = z(:,i); 
+        else
+            if i == T_2 + 1 
+                z_con(:,i) = z_con(:,i-1/h); 
+            else
+                z_con(:,i) = z_con(:,i-1); 
+            end
+        end
+    else
+            if i == T_2 + 1 
+                z_con(:,i) = z_con(:,i-1/h); 
+            else
+                z_con(:,i) = z_con(:,i-1); 
+            end
+    end
+    z(:,i + 1) = z(:,i) - h*c*L*z(:,i)-h*q*D*z_con(:,i);
+end
+
+figure(1)
+hold on 
+tt_3 = T_2+1 : 1/h : T_3;
+y_1= plot(t(tt_3),z(1,tt_3),'Color',cr1,'LineWidth',5);
+y_2= plot(t(tt_3),z(2,tt_3),'Color',cr2,'LineWidth',5);
+y_3= plot(t(tt_3),z(3,tt_3),'Color',cr3,'LineWidth',5);
+y_4= plot(t(tt_3),z(4,tt_3),'Color',cr4,'LineWidth',5);
+y_5= plot(t(tt_3),z(5,tt_3),'Color',cr5,'LineWidth',5);
+y_6= plot(t(tt_3),z(6,tt_3),'Color',cr6,'LineWidth',5);
+y_7= plot(t(tt_3),z(7,tt_3),'Color',cr7,'LineWidth',5);
+y_8= plot(t(tt_3),z(8,tt_3),'Color',cr8,'LineWidth',5);
+y_9= plot(t(tt_3),z(9,tt_3),'Color',cr9,'LineWidth',5);
+y_10= plot(t(tt_3),z(10,tt_3),'Color',cr10,'LineWidth',5);
+y_11= plot(t(tt_3),z(11,tt_3),'Color',cr11,'LineWidth',5);
+y_12= plot(t(tt_3),z(12,tt_3),'Color',cr12,'LineWidth',5);
+y_13= plot(t(tt_3),z(13,tt_3),'Color',cr13,'LineWidth',5);
+y_14= plot(t(tt_3),z(14,tt_3),'Color',cr14,'LineWidth',5);
+DoS(DoS_interval,-100,100,ccc)
+ylim([-50,50])
+xlim([0,95])
+set(gca,'FontSize',30);
+set(gca, 'LineWidth', 2); 
+legend('NumColumns',2)
+qq = legend([y_1, y_2, y_3, y_4, y_5, y_6, y_7...
+    y_8,  y_9,  y_10,  y_11,  y_12,  y_13,  y_14],...
+'$z_{out}^{[1]}(t)$','$z_{out}^{[2]}(t)$',...
+'$z_{out}^{[3]}(t)$','$z_{out}^{[4]}(t)$',...
+'$z_{out}^{[5]}(t)$','$z_{out}^{[6]}(t)$',...
+'$z_{out}^{[7]}(t)$','$z_{out}^{[8]}(t)$',...
+'$z_{out}^{[9]}(t)$','$z_{out}^{[10]}(t)$',...
+'$z_{out}^{[11]}(t)$','$z_{out}^{[12]}(t)$',...
+'$z_{out}^{[13]}(t)$', '$z_{out}^{[14]}(t)$','FontSize', 25);
+set(qq,'Interpreter','latex')
+qq.ItemTokenSize = [20,40];
+xlabel('$t$','Fontsize',40,'Interpreter','latex'); 
+ylabel('Output Voltage Error $z_{out}(t)$ (Vrms)','Fontsize',40,'Interpreter','latex'); 
+
+
+figure(2)
+temp = q*D*z_con;
+hold on
+tt_3 = T_2+1 : 1/h : T_3;
+r1 = plot(t(tt_3),temp(5,tt_3),'Color',cr1,'LineWidth',3);
+r2 = plot(t(tt_3),temp(7,tt_3),'Color',cr2,'LineWidth',3);
+r3 = plot(t(tt_3),temp(12,tt_3),'--','Color',cr3,'LineWidth',3);
+r4 = plot(t(tt_3),temp(14,tt_3),'--','Color',cr4,'LineWidth',3);
+hold on 
+DoS(DoS_interval,-12,10,ccc)
+ylim([-12,10])
+xlim([0,95])
+set(gca,'FontSize',30);
+set(gca, 'LineWidth', 2); 
+legend('NumColumns',2)
+qq = legend([r1, r2, r3, r4],...
+'$u^{[1]}(t)$','$u^{[2]}(t)$',...
+'$u^{[3]}(t)$','$u^{[4]}(t)$','FontSize', 25);
+set(qq,'Interpreter','latex')
+qq.ItemTokenSize = [20,40];
+xlabel('$t$','Fontsize',40,'Interpreter','latex'); 
+ylabel('Control input $u(t)$','Fontsize',40,'Interpreter','latex'); 
+
+
